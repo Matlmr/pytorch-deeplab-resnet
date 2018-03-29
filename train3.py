@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import pickle
-import deeplab_resnet 
+import deeplab_resnet3
 from torch.autograd import Variable
 import torch.optim as optim
 import scipy.misc
@@ -206,7 +206,7 @@ if not os.path.exists('data/snapshots'):
     os.makedirs('data/snapshots')
 
 
-model = deeplab_resnet.Res_Deeplab(int(args['--NoLabels']))
+model = deeplab_resnet3.Res_Deeplab(int(args['--NoLabels']))
 
 print('N')
 

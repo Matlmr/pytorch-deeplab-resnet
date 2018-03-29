@@ -1,9 +1,9 @@
-import torch
+import cv2, torch
 import torch.nn as nn
 import numpy as np
 import pickle
-import deeplab_resnet 
-import cv2
+import deeplab_resnet2 
+#import cv2
 from torch.autograd import Variable
 import torch.optim as optim
 import scipy.misc
@@ -63,7 +63,7 @@ def chunker(seq, size):
 
 def resize_label_batch(label, size):
     label_resized = np.zeros((size,size,1,label.shape[3]))
-    interp = nn.UpsamplingBilinear2d(size=(size, size))
+    interp = nn.Upsample(size=(size, size),mode='bilinear')
     labelVar = Variable(torch.from_numpy(label.transpose(3, 2, 0, 1)))
     label_resized[:, :, :, :] = interp(labelVar).data.numpy().transpose(2, 3, 1, 0)
 
@@ -104,6 +104,8 @@ def get_data_from_chunk_v2(chunk):
 
         gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
         gt_temp[gt_temp == 255] = 0
+        #print(gt_temp)        
+        gt_temp[gt_temp == 192] = 0
         gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
         gt_temp = scale_gt(gt_temp,scale)
         gt_temp = flip(gt_temp,flip_p)
@@ -179,7 +181,7 @@ if not os.path.exists('data/snapshots'):
     os.makedirs('data/snapshots')
 
 
-model = deeplab_resnet.Res_Deeplab(int(args['--NoLabels']))
+model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']))
 
 saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
 if int(args['--NoLabels'])!=21:
@@ -205,8 +207,9 @@ data_list = []
 for i in range(10):  # make list for 10 epocs, though we will only use the first max_iter*batch_size entries of this list
     np.random.shuffle(img_list)
     data_list.extend(img_list)
-
+print('before')
 model.cuda(gpu0)
+print('after')
 criterion = nn.CrossEntropyLoss() # use a Classification Cross-Entropy loss
 optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': base_lr }, {'params': get_10x_lr_params(model), 'lr': 10*base_lr} ], lr = base_lr, momentum = 0.9,weight_decay = weight_decay)
 
@@ -214,6 +217,7 @@ optimizer.zero_grad()
 data_gen = chunker(data_list, batch_size)
 
 for iter in range(max_iter+1):
+    
     chunk = data_gen.next()
 
     images, label = get_data_from_chunk_v2(chunk)

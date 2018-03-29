@@ -188,9 +188,9 @@ class MS_Deeplab(nn.Module):
 
     def forward(self,x):
         input_size = x.size()[2]
-	self.interp1 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.75)+1,  int(input_size*0.75)+1  ))
-        self.interp2 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.5)+1,   int(input_size*0.5)+1   ))
-        self.interp3 = nn.UpsamplingBilinear2d(size = (  outS(input_size),   outS(input_size)   ))
+	self.interp1 = nn.Upsample(size = (int(input_size*0.75)+1,int(input_size*0.75)+1),mode='bilinear')
+        self.interp2 = nn.Upsample(size = (int(input_size*0.5)+1,int(input_size*0.5)+1),mode='bilinear')
+        self.interp3 = nn.Upsample(size = (outS(input_size),outS(input_size)),mode='bilinear')
         out = []
         x2 = self.interp1(x)
         x3 = self.interp2(x)
