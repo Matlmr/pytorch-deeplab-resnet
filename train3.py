@@ -1,5 +1,5 @@
-import cv2
-import torch
+import torch, cv2
+#import torch
 import torch.nn as nn
 import numpy as np
 import pickle
@@ -41,8 +41,6 @@ print(args)
 cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
 
-print('A')
-
 def outS(i):
     """Given shape of input image as i,i,3 in deeplab-resnet model, this function
     returns j such that the shape of output blob of is j,j,21 (21 in case of VOC)"""
@@ -52,8 +50,6 @@ def outS(i):
     j = (j+1)/2
     return j
 
-print('B')
-
 def read_file(path_to_file):
     with open(path_to_file) as f:
         img_list = []
@@ -61,12 +57,8 @@ def read_file(path_to_file):
             img_list.append(line[:-1])
     return img_list
 
-print('C')
-
 def chunker(seq, size):
  return (seq[pos:pos+size] for pos in range(0,len(seq), size))
-
-print('D')
 
 def resize_label_batch(label, size):
     size = int(size)
@@ -78,27 +70,19 @@ def resize_label_batch(label, size):
 
     return label_resized
 
-print('E')
-
 def flip(I,flip_p):
     if flip_p>0.5:
         return np.fliplr(I)
     else:
         return I
 
-print('F')
-
 def scale_im(img_temp,scale):
     new_dims = (  int(img_temp.shape[0]*scale),  int(img_temp.shape[1]*scale)   )
     return cv2.resize(img_temp,new_dims).astype(float)
 
-print('G')
-
 def scale_gt(img_temp,scale):
     new_dims = (  int(img_temp.shape[0]*scale),  int(img_temp.shape[1]*scale)   )
     return cv2.resize(img_temp,new_dims,interpolation = cv2.INTER_NEAREST).astype(float)
-
-print('H')   
 
 def get_data_from_chunk_v2(chunk):
     gt_path =  args['--GTpath']
@@ -110,8 +94,8 @@ def get_data_from_chunk_v2(chunk):
     gt = np.zeros((dim,dim,1,len(chunk)))
     for i,piece in enumerate(chunk):
         flip_p = random.uniform(0, 1)
-        print(os.path.join(img_path,piece+'.jpg'))
-        print(cv2.imread(os.path.join(img_path,piece+'.jpg'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   )))
+        #print(os.path.join(img_path,piece+'.jpg'))
+        #print(cv2.imread(os.path.join(img_path,piece+'.jpg'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   )))
         img_temp = cv2.imread(os.path.join(img_path,piece+'.jpg')).astype(float)
         img_temp = cv2.resize(img_temp,(321,321)).astype(float)
         img_temp = scale_im(img_temp,scale)
@@ -121,8 +105,8 @@ def get_data_from_chunk_v2(chunk):
         img_temp = flip(img_temp,flip_p)
         images[:,:,:,i] = img_temp
 
-        print(os.path.join(gt_path,piece+'.png'))
-        print(cv2.imread(os.path.join(gt_path,piece+'.png')))
+        #print(os.path.join(gt_path,piece+'.png'))
+        #print(cv2.imread(os.path.join(gt_path,piece+'.png')))
         gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
         gt_temp[gt_temp == 255] = 0
         gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
@@ -135,8 +119,6 @@ def get_data_from_chunk_v2(chunk):
     images = images.transpose((3,2,0,1))
     images = torch.from_numpy(images).float()
     return images, labels
-
-print('I')
 
 def loss_calc(out, label,gpu0):
     """
@@ -153,12 +135,8 @@ def loss_calc(out, label,gpu0):
     
     return criterion(out,label)
 
-print('J')
-
 def lr_poly(base_lr, iter,max_iter,power):
     return base_lr*((1-float(iter)/max_iter)**(power))
-
-print('K')
 
 def get_1x_lr_params_NOscale(model):
     """
@@ -185,8 +163,6 @@ def get_1x_lr_params_NOscale(model):
                 if k.requires_grad:
                     yield k
 
-print('L')
-
 def get_10x_lr_params(model):
     """
     This generator returns all the parameters for the last layer of the net,
@@ -200,15 +176,10 @@ def get_10x_lr_params(model):
         for i in b[j]:
             yield i
 
-print('M')
-
 if not os.path.exists('data/snapshots'):
     os.makedirs('data/snapshots')
 
-
 model = deeplab_resnet3.Res_Deeplab(int(args['--NoLabels']))
-
-print('N')
 
 saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
 if int(args['--NoLabels'])!=21:
@@ -229,25 +200,18 @@ model.float()
 model.eval() # use_global_stats = True
 
 img_list = read_file(args['--LISTpath'])
-print('O')
+
 data_list = []
 for i in range(10):  # make list for 10 epocs, though we will only use the first max_iter*batch_size entries of this list
     np.random.shuffle(img_list)
     data_list.extend(img_list)
-    print('P')
-print('p')
-print(gpu0)
+print('cu')
 model.cuda(gpu0)
-print('1')
+print('da')
 criterion = nn.CrossEntropyLoss() # use a Classification Cross-Entropy loss
-print('2')
 optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': base_lr }, {'params': get_10x_lr_params(model), 'lr': 10*base_lr} ], lr = base_lr, momentum = 0.9,weight_decay = weight_decay)
-print('3')
 optimizer.zero_grad()
-print('4')
 data_gen = chunker(data_list, batch_size)
-
-print('Q')
 
 for iter in range(max_iter+1):
     #chunk = data_gen.next()

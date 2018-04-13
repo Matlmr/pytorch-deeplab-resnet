@@ -8,10 +8,11 @@ affine_par = True
 
 
 def outS(i):
+    # Integer division in python3
     i = int(i)
-    i = (i+1)/2
+    i = int((i+1)/2)
     i = int(np.ceil((i+1)/2.0))
-    i = (i+1)/2
+    i = int((i+1)/2)
     return i
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
@@ -184,14 +185,16 @@ class ResNet(nn.Module):
 
 class MS_Deeplab(nn.Module):
     def __init__(self,block,NoLabels):
-        print('jeff')
         super(MS_Deeplab,self).__init__()
         self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels)   #changed to fix #4 
 
     def forward(self,x):
         input_size = x.size()[2]
+        #self.interp1 = nn.Upsample(size = (  int(input_size*0.75)+1,  int(input_size*0.75)+1  ), mode='bilinear')
         self.interp1 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.75)+1,  int(input_size*0.75)+1  ))
+        #self.interp2 = nn.Upsample(size = (  int(input_size*0.5)+1,   int(input_size*0.5)+1   ), mode='bilinear')
         self.interp2 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.5)+1,   int(input_size*0.5)+1   ))
+        #self.interp3 = nn.Upsample(size = (  outS(input_size),   outS(input_size)   ), mode='bilinear')
         self.interp3 = nn.UpsamplingBilinear2d(size = (  outS(input_size),   outS(input_size)   ))
         out = []
         x2 = self.interp1(x)
