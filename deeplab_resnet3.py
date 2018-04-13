@@ -233,6 +233,6 @@ class PSP(nn.Module):
 
 def Res_Deeplab(NoLabels=21):
     model = MS_Deeplab(Bottleneck,NoLabels)
-#    model = PSP(Bottleneck,NoLabels)
+#   model = PSP(Bottleneck,NoLabels)
     return model
 

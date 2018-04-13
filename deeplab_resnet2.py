@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.nn.functional as F
 import math
 import torch.utils.model_zoo as model_zoo
 import torch
@@ -119,7 +120,24 @@ class Classifier_Module(nn.Module):
 	    out += self.conv2d_list[i+1](x)
         return out
 
-
+# Pyramid Pooling Module
+class PPM(nn.Module):
+    def __init__(self,block,NoLabels):
+        super(PPM,self).__init__()
+        self.conv2d_list = nn.ModuleList()
+        for i in (1,2,3,6):
+            pool = nn.AdaptiveAvgPool2d(output_size=i)
+            conv = nn.Conv2d(in_channels = 2048, out_channels = 512, kernel_size = 1)
+            self.conv2d_list.append(nn.sequential(pool,conv))
+        self.conv2d = nn.conv2d(in_channels = 4096, out_channels = NoLabels, kernel_size = 1)
+        
+    def forward(self,x):
+        concat = x
+        for i in range(len(self.conv2d_list)):
+            level = F.upsample(input = conv2d_list[i](x), size = (x.size(2), x.size(3)), mode = 'bilinear')
+            concat = torch.cat((concat, level), dim = 1)
+        out = self.conv2d(concat)
+        return out
 
 class ResNet(nn.Module):
     def __init__(self, block, layers,NoLabels):
@@ -136,7 +154,8 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation__ = 2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation__ = 4)
-	self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
+	#self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
+        self.layer5 = PPM(NoLabels)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -205,7 +224,32 @@ class MS_Deeplab(nn.Module):
         out.append(torch.max(temp1,x3Out_interp))
 	return out
 
+# Pyramid Scene Parsing
+class PSP(nn.Module):
+    def __init__(self,block,NoLabels):
+        super(PSP,self).__init__()
+        self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels)
+        self.NoLabels = NoLabels
+
+
+
+    def forward(self,x):
+        x = self.Scale(x)
+        input_size = x.size()[2]
+        channels = x.size()[1]
+        self.conv1 = nn.Conv2d(in_channels = channels, out_channels = channels / 4, kernel_size = 1)
+        for i in (1,2,3,6):
+            xi = self.conv1(F.avg_pool2d(input = x, kernel_size = i))
+            xi = F.upsample_bilinear(xi, input_size)
+            concat = torch.cat((concat,xi), dim = 1)
+
+        self.conv2 = nn.Conv2d(in_channels = concat.size()[1], out_channels = self.NoLabels, kernel_size = 1)
+        out = self.conv2(concat)
+        return out
+
 def Res_Deeplab(NoLabels=21):
-    model = MS_Deeplab(Bottleneck,NoLabels)
+    #model = MS_Deeplab(Bottleneck,NoLabels)
+    #model = PSP(Bottleneck,NoLabels)
+    model = ResNet(block,[3, 4, 23, 3],NoLabels)
     return model
 

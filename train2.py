@@ -40,6 +40,7 @@ print(args)
 
 cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
+torch.cuda.set_device(gpu0)
 
 
 def outS(i):
@@ -105,7 +106,6 @@ def get_data_from_chunk_v2(chunk):
         gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
         gt_temp[gt_temp == 255] = 0
         #print(gt_temp)        
-        gt_temp[gt_temp == 192] = 0
         gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
         gt_temp = scale_gt(gt_temp,scale)
         gt_temp = flip(gt_temp,flip_p)
@@ -183,7 +183,7 @@ if not os.path.exists('data/snapshots'):
 
 model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']))
 
-saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
+#saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
 if int(args['--NoLabels'])!=21:
     for i in saved_state_dict:
         #Scale.layer5.conv2d_list.3.weight
@@ -191,7 +191,8 @@ if int(args['--NoLabels'])!=21:
         if i_parts[1]=='layer5':
             saved_state_dict[i] = model.state_dict()[i]
 
-model.load_state_dict(saved_state_dict)
+#print(saved_state_dict)
+#model.load_state_dict(saved_state_dict)
 
 max_iter = int(args['--maxIter']) 
 batch_size = 1
@@ -223,6 +224,7 @@ for iter in range(max_iter+1):
     images, label = get_data_from_chunk_v2(chunk)
     images = Variable(images).cuda(gpu0)
 
+    torch.set_default_tensor_type('torch.cuda.FloatTensor')
     out = model(images)
     loss = loss_calc(out[0], label[0],gpu0)
     iter_size = int(args['--iterSize']) 
