@@ -37,6 +37,10 @@ Options:
 args = docopt(docstr, version='v0.1')
 print args
 
+torch.backends.cudnn.enabled = False
+gpu0 = int(args['--gpu0'])
+torch.cuda.set_device(gpu0)
+
 max_label = int(args['--NoLabels'])-1 # labels from 0,1, ... 20(for VOC) 
 def fast_hist(a, b, n):
     k = (a >= 0) & (a < n)
@@ -68,20 +72,23 @@ def get_iou(pred,gt):
     
     return Aiou
 
-
-
-gpu0 = int(args['--gpu0'])
 im_path = args['--testIMpath']
 model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']))
-model.eval()
+
 counter = 0
+print('before')
 model.cuda(gpu0)
-snapPrefix = args['--snapPrefix'] 
+print('after')
+
+model.eval()
+
+snapPrefix = args['--snapPrefix']
 gt_path = args['--testGTpath']
 img_list = open('data/list/val.txt').readlines()
 
-for iter in range(1,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
-    saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))
+for iter in range(20,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
+    print(iter)
+    saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))#, map_location=lambda storage, loc: storage)
     if counter==0:
 	print snapPrefix
     counter+=1
@@ -90,15 +97,17 @@ for iter in range(1,21):   #TODO set the (different iteration)models that you wa
     hist = np.zeros((max_label+1, max_label+1))
     pytorch_list = [];
     for i in img_list:
+        counter+=1
+        print(counter)
         img = np.zeros((513,513,3));
 
-        img_temp = cv2.imread(os.path.join(im_path,i[:-1]+'.jpg')).astype(float)
+        img_temp = imread(os.path.join(im_path,i[:-1]+'.jpg')).astype(float)
         img_original = img_temp
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
         img_temp[:,:,1] = img_temp[:,:,1] - 116.669
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
-        gt = cv2.imread(os.path.join(gt_path,i[:-1]+'.png'),0)
+        gt = imread(os.path.join(gt_path,i[:-1]+'.png'),0)
         #gt[gt==255] = 0
 
         output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))

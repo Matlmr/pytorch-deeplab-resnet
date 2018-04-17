@@ -176,7 +176,7 @@ class PSPModule(nn.Module):
         return out
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers,NoLabels):
+    def __init__(self, block, layers,NoLabels, psp = False):
         self.inplanes = 64
         super(ResNet, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
@@ -190,9 +190,11 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation__ = 2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation__ = 4)
-        self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
+        if not psp:
+            self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
         #self.layer5 = PPM(NoLabels)
-        #self.layer5 = PSPModule(n_classes=NoLabels)
+        else:
+            self.layer5 = PSPModule(n_classes=NoLabels)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -239,31 +241,39 @@ class ResNet(nn.Module):
         return x
 
 class MS_Deeplab(nn.Module):
-    def __init__(self,block,NoLabels):
+    def __init__(self,block,NoLabels, psp = False):
         super(MS_Deeplab,self).__init__()
-        self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels)   #changed to fix #4 
+        self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels, psp)   #changed to fix #4
+        self.psp = psp
 
     def forward(self,x):
-        input_size = x.size()[2]
-        self.interp1 = nn.Upsample(size = (int(input_size*0.75)+1,int(input_size*0.75)+1),mode='bilinear')
-        self.interp2 = nn.Upsample(size = (int(input_size*0.5)+1,int(input_size*0.5)+1),mode='bilinear')
-        self.interp3 = nn.Upsample(size = (outS(input_size),outS(input_size)),mode='bilinear')
-        out = []
-        x2 = self.interp1(x)
-        x3 = self.interp2(x)
-        out.append(self.Scale(x))        # for original scale
-        out.append(self.interp3(self.Scale(x2)))        # for 0.75x scale
-        out.append(self.Scale(x3))        # for 0.5x scale
+        if not self.psp:
+            input_size = x.size()[2]
+            self.interp1 = nn.Upsample(size = (int(input_size*0.75)+1,int(input_size*0.75)+1),mode='bilinear')
+            self.interp2 = nn.Upsample(size = (int(input_size*0.5)+1,int(input_size*0.5)+1),mode='bilinear')
+            self.interp3 = nn.Upsample(size = (outS(input_size),outS(input_size)),mode='bilinear')
+            out = []
+            x2 = self.interp1(x)
+            x3 = self.interp2(x)
+            out.append(self.Scale(x))        # for original scale
+            out.append(self.interp3(self.Scale(x2)))        # for 0.75x scale
+            out.append(self.Scale(x3))        # for 0.5x scale
 
 
-        x2Out_interp = out[1]
-        x3Out_interp = self.interp3(out[2])
-        temp1 = torch.max(out[0],x2Out_interp)
-        out.append(torch.max(temp1,x3Out_interp))
-        return out
+            x2Out_interp = out[1]
+            x3Out_interp = self.interp3(out[2])
+            temp1 = torch.max(out[0],x2Out_interp)
+            out.append(torch.max(temp1,x3Out_interp))
+            return out
+        else:
+            x = self.Scale(x)
+            out = []
+            out.append(x)
+            return out
 
-def Res_Deeplab(NoLabels=21):
-    model = MS_Deeplab(Bottleneck,NoLabels)
+def Res_Deeplab(NoLabels=21, psp=False):
+    model = MS_Deeplab(Bottleneck,NoLabels, psp)
     #model = PSP(Bottleneck,NoLabels)
     #model = ResNet(block,[3, 4, 23, 3],NoLabels)
+
     return model

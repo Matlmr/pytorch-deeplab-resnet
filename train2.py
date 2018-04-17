@@ -29,10 +29,11 @@ Options:
     --LISTpath=<str>            Input image number list file [default: data/list/train_aug.txt]
     --lr=<float>                Learning Rate [default: 0.00025]
     -i, --iterSize=<int>        Num iters to accumulate gradients over [default: 10]
-    --wtDecay=<float>          Weight decay during training [default: 0.0005]
+    --wtDecay=<float>           Weight decay during training [default: 0.0005]
     --gpu0=<int>                GPU number [default: 0]
     --maxIter=<int>             Maximum number of iterations [default: 20000]
     --savePath=<str>            Path to save network
+    --PSPNet                    Use the Pyramid Scene Parsing network
 """
 
 #    -b, --batchSize=<int>       num sample per batch [default: 1] currently only batch size of 1 is implemented, arbitrary batch size to be implemented soon
@@ -44,7 +45,6 @@ gpu0 = int(args['--gpu0'])
 torch.cuda.set_device(gpu0)
 
 filename = args['--savePath']
-
 
 def outS(i):
     """Given shape of input image as i,i,3 in deeplab-resnet model, this function
@@ -134,7 +134,6 @@ def loss_calc(out, label,gpu0):
     m = nn.LogSoftmax()
     criterion = nn.NLLLoss2d()
     out = m(out)
-    
     return criterion(out,label)
 
 
@@ -184,9 +183,9 @@ if not os.path.exists('data/snapshots'):
     os.makedirs('data/snapshots')
 
 
-model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']))
+model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']),args['--PSPNet'])
 
-#saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
+saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
 if int(args['--NoLabels'])!=21:
     for i in saved_state_dict:
         #Scale.layer5.conv2d_list.3.weight
@@ -194,8 +193,14 @@ if int(args['--NoLabels'])!=21:
         if i_parts[1]=='layer5':
             saved_state_dict[i] = model.state_dict()[i]
 
-#print(saved_state_dict)
-#model.load_state_dict(saved_state_dict)
+model_dict = model.state_dict()
+
+# 1. filter out unnecessary keys
+saved_state_dict = {k: v for k, v in saved_state_dict.items() if k in model_dict}
+# 2. overwrite entries in the existing state dict
+model_dict.update(saved_state_dict)
+# 3. load the new state dict
+model.load_state_dict(model_dict)
 
 max_iter = int(args['--maxIter']) 
 batch_size = 1
@@ -229,6 +234,8 @@ for iter in range(max_iter+1):
 
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     out = model(images)
+    #print(label.size())
+    #print(label[0])
     loss = loss_calc(out[0], label[0],gpu0)
     iter_size = int(args['--iterSize']) 
     for i in range(len(out)-1):
