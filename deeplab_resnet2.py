@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-import math
+#import math
 import torch.utils.model_zoo as model_zoo
 import torch
 import numpy as np
@@ -58,13 +58,13 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False) # change
         self.bn1 = nn.BatchNorm2d(planes,affine = affine_par)
-	for i in self.bn1.parameters():
+        for i in self.bn1.parameters():
             i.requires_grad = False
         padding = 1
         if dilation_ == 2:
-	    padding = 2
+            padding = 2
         elif dilation_ == 4:
-	    padding = 4
+            padding = 4
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, # change
                                padding=padding, bias=False, dilation = dilation_)
         self.bn2 = nn.BatchNorm2d(planes,affine = affine_par)
@@ -106,18 +106,18 @@ class Classifier_Module(nn.Module):
 
     def __init__(self,dilation_series,padding_series,NoLabels):
         super(Classifier_Module, self).__init__()
-	self.conv2d_list = nn.ModuleList()
-	for dilation,padding in zip(dilation_series,padding_series):
-	    self.conv2d_list.append(nn.Conv2d(2048,NoLabels,kernel_size=3,stride=1, padding =padding, dilation = dilation,bias = True))
+        self.conv2d_list = nn.ModuleList()
+        for dilation,padding in zip(dilation_series,padding_series):
+            self.conv2d_list.append(nn.Conv2d(2048,NoLabels,kernel_size=3,stride=1, padding =padding, dilation = dilation,bias = True))
 
         for m in self.conv2d_list:
             m.weight.data.normal_(0, 0.01)
 
 
     def forward(self, x):
-	out = self.conv2d_list[0](x)
-	for i in range(len(self.conv2d_list)-1):
-	    out += self.conv2d_list[i+1](x)
+        out = self.conv2d_list[0](x)
+        for i in range(len(self.conv2d_list)-1):
+            out += self.conv2d_list[i+1](x)
         return out
 
 # Pyramid Pooling Module
@@ -139,6 +139,42 @@ class PPM(nn.Module):
         out = self.conv2d(concat)
         return out
 
+class PSPModule(nn.Module):
+    """
+    Pyramid Scene Parsing module
+    """
+    def __init__(self, in_features=2048, out_features=512, sizes=(1, 2, 3, 6), n_classes=1):
+        super(PSPModule, self).__init__()
+        self.stages = []
+        self.stages = nn.ModuleList([self._make_stage_1(in_features, size) for size in sizes])
+        self.bottleneck = self._make_stage_2(in_features * (len(sizes)//4 + 1), out_features)
+        self.relu = nn.ReLU()
+        self.final = nn.Conv2d(out_features, n_classes, kernel_size=1)
+
+    def _make_stage_1(self, in_features, size):
+        prior = nn.AdaptiveAvgPool2d(output_size=(size, size))
+        conv = nn.Conv2d(in_features, in_features//4, kernel_size=1, bias=False)
+        bn = nn.BatchNorm2d(in_features//4, affine=affine_par)
+        relu = nn.ReLU(inplace=True)
+
+        return nn.Sequential(prior, conv, bn, relu)
+
+    def _make_stage_2(self, in_features, out_features):
+        conv = nn.Conv2d(in_features, out_features, kernel_size=1, bias=False)
+        bn = nn.BatchNorm2d(out_features, affine=affine_par)
+        relu = nn.ReLU(inplace=True)
+
+        return nn.Sequential(conv, bn, relu)
+
+    def forward(self, feats):
+        h, w = feats.size(2), feats.size(3)
+        priors = [F.upsample(input=stage(feats), size=(h, w), mode='bilinear') for stage in self.stages]
+        priors.append(feats)
+        bottle = self.relu(self.bottleneck(torch.cat(priors, 1)))
+        out = self.final(bottle)
+
+        return out
+
 class ResNet(nn.Module):
     def __init__(self, block, layers,NoLabels):
         self.inplanes = 64
@@ -154,8 +190,9 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation__ = 2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation__ = 4)
-	#self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
-        self.layer5 = PPM(NoLabels)
+        self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
+        #self.layer5 = PPM(NoLabels)
+        #self.layer5 = PSPModule(n_classes=NoLabels)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -184,8 +221,9 @@ class ResNet(nn.Module):
             layers.append(block(self.inplanes, planes,dilation_=dilation__))
 
         return nn.Sequential(*layers)
+    
     def _make_pred_layer(self,block, dilation_series, padding_series,NoLabels):
-	return block(dilation_series,padding_series,NoLabels)
+        return block(dilation_series,padding_series,NoLabels)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -196,60 +234,36 @@ class ResNet(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-	x = self.layer5(x)
+        x = self.layer5(x)
 
         return x
 
 class MS_Deeplab(nn.Module):
     def __init__(self,block,NoLabels):
-	super(MS_Deeplab,self).__init__()
-	self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels)   #changed to fix #4 
+        super(MS_Deeplab,self).__init__()
+        self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels)   #changed to fix #4 
 
     def forward(self,x):
         input_size = x.size()[2]
-	self.interp1 = nn.Upsample(size = (int(input_size*0.75)+1,int(input_size*0.75)+1),mode='bilinear')
+        self.interp1 = nn.Upsample(size = (int(input_size*0.75)+1,int(input_size*0.75)+1),mode='bilinear')
         self.interp2 = nn.Upsample(size = (int(input_size*0.5)+1,int(input_size*0.5)+1),mode='bilinear')
         self.interp3 = nn.Upsample(size = (outS(input_size),outS(input_size)),mode='bilinear')
         out = []
         x2 = self.interp1(x)
         x3 = self.interp2(x)
-	out.append(self.Scale(x))	# for original scale
-	out.append(self.interp3(self.Scale(x2)))	# for 0.75x scale
-	out.append(self.Scale(x3))	# for 0.5x scale
+        out.append(self.Scale(x))        # for original scale
+        out.append(self.interp3(self.Scale(x2)))        # for 0.75x scale
+        out.append(self.Scale(x3))        # for 0.5x scale
 
 
         x2Out_interp = out[1]
         x3Out_interp = self.interp3(out[2])
         temp1 = torch.max(out[0],x2Out_interp)
         out.append(torch.max(temp1,x3Out_interp))
-	return out
-
-# Pyramid Scene Parsing
-class PSP(nn.Module):
-    def __init__(self,block,NoLabels):
-        super(PSP,self).__init__()
-        self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels)
-        self.NoLabels = NoLabels
-
-
-
-    def forward(self,x):
-        x = self.Scale(x)
-        input_size = x.size()[2]
-        channels = x.size()[1]
-        self.conv1 = nn.Conv2d(in_channels = channels, out_channels = channels / 4, kernel_size = 1)
-        for i in (1,2,3,6):
-            xi = self.conv1(F.avg_pool2d(input = x, kernel_size = i))
-            xi = F.upsample_bilinear(xi, input_size)
-            concat = torch.cat((concat,xi), dim = 1)
-
-        self.conv2 = nn.Conv2d(in_channels = concat.size()[1], out_channels = self.NoLabels, kernel_size = 1)
-        out = self.conv2(concat)
         return out
 
 def Res_Deeplab(NoLabels=21):
-    #model = MS_Deeplab(Bottleneck,NoLabels)
+    model = MS_Deeplab(Bottleneck,NoLabels)
     #model = PSP(Bottleneck,NoLabels)
-    model = ResNet(block,[3, 4, 23, 3],NoLabels)
+    #model = ResNet(block,[3, 4, 23, 3],NoLabels)
     return model
-

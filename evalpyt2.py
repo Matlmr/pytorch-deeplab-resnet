@@ -1,22 +1,23 @@
-import scipy
-from scipy import ndimage
-import cv2
+import matplotlib.pyplot as plt
+#import scipy
+#from scipy import ndimage
+from cv2 import imread
 import numpy as np
-import sys
-sys.path.insert(0,'/data1/ravikiran/SketchObjPartSegmentation/src/caffe-switch/caffe/python')
-import caffe
+#import sys
+#sys.path.insert(0,'/data1/ravikiran/SketchObjPartSegmentation/src/caffe-switch/caffe/python')
+#import caffe
 import torch
 from torch.autograd import Variable
 import torchvision.models as models
 import torch.nn.functional as F
-import deeplab_resnet 
+import deeplab_resnet2
 from collections import OrderedDict
 import os
-from os import walk
-import matplotlib.pyplot as plt
+#from os import walk
 import torch.nn as nn
 
 from docopt import docopt
+
 
 docstr = """Evaluate ResNet-DeepLab trained on scenes (VOC 2012),a total of 21 labels including background
 
@@ -71,7 +72,7 @@ def get_iou(pred,gt):
 
 gpu0 = int(args['--gpu0'])
 im_path = args['--testIMpath']
-model = deeplab_resnet.Res_Deeplab(int(args['--NoLabels']))
+model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']))
 model.eval()
 counter = 0
 model.cuda(gpu0)

@@ -1,16 +1,16 @@
 import cv2, torch
 import torch.nn as nn
 import numpy as np
-import pickle
+#import pickle
 import deeplab_resnet2 
 #import cv2
 from torch.autograd import Variable
 import torch.optim as optim
-import scipy.misc
+#import scipy.misc
 import torch.backends.cudnn as cudnn
-import sys
+#import sys
 import os
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from tqdm import *
 import random
 from docopt import docopt
@@ -32,6 +32,7 @@ Options:
     --wtDecay=<float>          Weight decay during training [default: 0.0005]
     --gpu0=<int>                GPU number [default: 0]
     --maxIter=<int>             Maximum number of iterations [default: 20000]
+    --savePath=<str>            Path to save network
 """
 
 #    -b, --batchSize=<int>       num sample per batch [default: 1] currently only batch size of 1 is implemented, arbitrary batch size to be implemented soon
@@ -41,6 +42,8 @@ print(args)
 cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
 torch.cuda.set_device(gpu0)
+
+filename = args['--savePath']
 
 
 def outS(i):
@@ -245,6 +248,7 @@ for iter in range(max_iter+1):
 
     if iter % 1000 == 0 and iter!=0:
         print 'taking snapshot ...'
-        torch.save(model.state_dict(),'data/snapshots/VOC12_scenes_'+str(iter)+'.pth')
+        #torch.save(model.state_dict(),'data/snapshots/VOC12_scenes_'+str(iter)+'.pth')
+        torch.save(model.state_dict(),'data/snapshots/'+filename+'/'+str(iter)+'.pth')
 end = timeit.timeit
 print end-start,'seconds'
