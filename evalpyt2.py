@@ -32,6 +32,7 @@ Options:
     --testIMpath=<str>          Sketch images path prefix [default: data/img/]
     --NoLabels=<int>            The number of different labels in training data, VOC has 21 labels, including background [default: 21]
     --gpu0=<int>                GPU number [default: 0]
+    --PSPNet                    Use the Pyramid Scene Parsing network
 """
 
 args = docopt(docstr, version='v0.1')
@@ -39,7 +40,8 @@ print args
 
 torch.backends.cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
-torch.cuda.set_device(gpu0)
+if gpu0 >= 0:
+    torch.cuda.set_device(gpu0)
 
 max_label = int(args['--NoLabels'])-1 # labels from 0,1, ... 20(for VOC) 
 def fast_hist(a, b, n):
@@ -73,11 +75,12 @@ def get_iou(pred,gt):
     return Aiou
 
 im_path = args['--testIMpath']
-model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']))
+model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']),args['--PSPNet'])
 
 counter = 0
 print('before')
-model.cuda(gpu0)
+if gpu0 >= 0:
+    model.cuda(gpu0)
 print('after')
 
 model.eval()
@@ -87,8 +90,10 @@ gt_path = args['--testGTpath']
 img_list = open('data/list/val.txt').readlines()
 
 for iter in range(20,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
-    print(iter)
-    saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))#, map_location=lambda storage, loc: storage)
+    if gpu0 >= 0:
+        saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))#, map_location=lambda storage, loc: storage)
+    else:
+        saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'), map_location=lambda storage, loc: storage)
     if counter==0:
 	print snapPrefix
     counter+=1
@@ -110,9 +115,15 @@ for iter in range(20,21):   #TODO set the (different iteration)models that you w
         gt = imread(os.path.join(gt_path,i[:-1]+'.png'),0)
         #gt[gt==255] = 0
 
-        output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
+        if gpu0 >= 0:
+            output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
+        else:
+            output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True))
         interp = nn.UpsamplingBilinear2d(size=(513, 513))
-        output = interp(output[3]).cpu().data[0].numpy()
+        if args['--PSPNet']:
+            output = interp(output[0]).cpu().data[0].numpy()
+        else:
+            output = interp(output[3]).cpu().data[0].numpy()
         output = output[:,:img_temp.shape[0],:img_temp.shape[1]]
         
         output = output.transpose(1,2,0)

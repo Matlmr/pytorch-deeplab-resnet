@@ -5,6 +5,10 @@
 +data/*.caffemodel
 data/
 
+# Added by me
+.idea/
+images/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

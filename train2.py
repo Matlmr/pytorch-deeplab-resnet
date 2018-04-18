@@ -120,8 +120,6 @@ def get_data_from_chunk_v2(chunk):
     images = torch.from_numpy(images).float()
     return images, labels
 
-
-
 def loss_calc(out, label,gpu0):
     """
     This function returns cross entropy loss for semantic segmentation
@@ -234,10 +232,8 @@ for iter in range(max_iter+1):
 
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     out = model(images)
-    #print(label.size())
-    #print(label[0])
     loss = loss_calc(out[0], label[0],gpu0)
-    iter_size = int(args['--iterSize']) 
+    iter_size = int(args['--iterSize'])
     for i in range(len(out)-1):
         loss = loss + loss_calc(out[i+1],label[i+1],gpu0)
     loss = loss/iter_size 
