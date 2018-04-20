@@ -34,6 +34,7 @@ Options:
     --maxIter=<int>             Maximum number of iterations [default: 20000]
     --savePath=<str>            Path to save network
     --PSPNet                    Use the Pyramid Scene Parsing network
+    --savedDict=<str>           Path to pretrained network [default : data/MS_DeepLab_resnet_pretrained_COCO_init.pth]
 """
 
 #    -b, --batchSize=<int>       num sample per batch [default: 1] currently only batch size of 1 is implemented, arbitrary batch size to be implemented soon
@@ -108,6 +109,9 @@ def get_data_from_chunk_v2(chunk):
 
         gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
         gt_temp[gt_temp == 255] = 0
+        if int(args['--NoLabels']) == 2:
+            gt_temp[gt_temp != 15] = 0
+            gt_temp[gt_temp == 15] = 1
         #print(gt_temp)        
         gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
         gt_temp = scale_gt(gt_temp,scale)
@@ -183,7 +187,16 @@ if not os.path.exists('data/snapshots'):
 
 model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']),args['--PSPNet'])
 
-saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
+if not args['--savedDict']:
+    saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
+else:
+    saved_state_dict = torch.load(args['--savedDict'])
+
+model_dict = model.state_dict()
+
+# 1. filter out unnecessary keys
+saved_state_dict = {k: v for k, v in saved_state_dict.items() if k in model_dict}
+
 if int(args['--NoLabels'])!=21:
     for i in saved_state_dict:
         #Scale.layer5.conv2d_list.3.weight
@@ -191,10 +204,6 @@ if int(args['--NoLabels'])!=21:
         if i_parts[1]=='layer5':
             saved_state_dict[i] = model.state_dict()[i]
 
-model_dict = model.state_dict()
-
-# 1. filter out unnecessary keys
-saved_state_dict = {k: v for k, v in saved_state_dict.items() if k in model_dict}
 # 2. overwrite entries in the existing state dict
 model_dict.update(saved_state_dict)
 # 3. load the new state dict

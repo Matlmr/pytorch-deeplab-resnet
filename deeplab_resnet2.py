@@ -122,19 +122,19 @@ class Classifier_Module(nn.Module):
 
 # Pyramid Pooling Module
 class PPM(nn.Module):
-    def __init__(self,block,NoLabels):
+    def __init__(self,NoLabels):
         super(PPM,self).__init__()
         self.conv2d_list = nn.ModuleList()
         for i in (1,2,3,6):
             pool = nn.AdaptiveAvgPool2d(output_size=i)
             conv = nn.Conv2d(in_channels = 2048, out_channels = 512, kernel_size = 1)
-            self.conv2d_list.append(nn.sequential(pool,conv))
-        self.conv2d = nn.conv2d(in_channels = 4096, out_channels = NoLabels, kernel_size = 1)
+            self.conv2d_list.append(nn.Sequential(pool,conv))
+        self.conv2d = nn.Conv2d(in_channels = 4096, out_channels = NoLabels, kernel_size = 1)
         
     def forward(self,x):
         concat = x
         for i in range(len(self.conv2d_list)):
-            level = F.upsample(input = conv2d_list[i](x), size = (x.size(2), x.size(3)), mode = 'bilinear')
+            level = F.upsample(input = self.conv2d_list[i](x), size = (x.size(2), x.size(3)), mode = 'bilinear')
             concat = torch.cat((concat, level), dim = 1)
         out = self.conv2d(concat)
         return out
@@ -192,9 +192,9 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation__ = 4)
         if not psp:
             self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
-        #self.layer5 = PPM(NoLabels)
         else:
-            self.layer5 = PSPModule(n_classes=NoLabels)
+            #self.layer5 = PSPModule(n_classes=NoLabels)
+            self.layer5 = PPM(NoLabels)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

@@ -1,3 +1,7 @@
 standard (no pretrain): pytorch 20 Mean iou =  0.0345506318687
 basic (pretrain): 0.73
 PSP: 0.547374968968
+PSPmine: 0.663125947903
+PSPlong: 0.61699945904
+PSPlm: pytorch 30 Mean iou =  0.675208577199
+

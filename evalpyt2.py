@@ -31,7 +31,7 @@ Options:
     --testGTpath=<str>          Ground truth path prefix [default: data/gt/]
     --testIMpath=<str>          Sketch images path prefix [default: data/img/]
     --NoLabels=<int>            The number of different labels in training data, VOC has 21 labels, including background [default: 21]
-    --gpu0=<int>                GPU number [default: 0]
+    --gpu0=<int>                GPU number [default: 0] -1 for cpu mode
     --PSPNet                    Use the Pyramid Scene Parsing network
 """
 
@@ -89,9 +89,9 @@ snapPrefix = args['--snapPrefix']
 gt_path = args['--testGTpath']
 img_list = open('data/list/val.txt').readlines()
 
-for iter in range(20,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
+for iter in range(30,31):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
     if gpu0 >= 0:
-        saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))#, map_location=lambda storage, loc: storage)
+        saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))
     else:
         saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'), map_location=lambda storage, loc: storage)
     if counter==0:
@@ -113,7 +113,7 @@ for iter in range(20,21):   #TODO set the (different iteration)models that you w
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
         gt = imread(os.path.join(gt_path,i[:-1]+'.png'),0)
-        #gt[gt==255] = 0
+        gt[gt==255] = 0
 
         if gpu0 >= 0:
             output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
