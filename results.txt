@@ -1,7 +1,26 @@
+On original data (our pretraining):
+
 standard (no pretrain): pytorch 20 Mean iou =  0.0345506318687
 basic (pretrain): 0.73
 PSP: 0.547374968968
 PSPmine: 0.663125947903
 PSPlong: 0.61699945904
 PSPlm: pytorch 30 Mean iou =  0.675208577199
+
+
+On PASCAL (the experiments):
+
+(RealMS: pytorch 7 Mean iou =  0.880841945764)
+
+RealPSP: pytorch 7 Mean iou =  0.886707742952
+SyntPSP: pytorch 7 Mean iou =  0.844302364356
+Synt+RealPSP: pytorch 7 Mean iou =  0.873622874196
+SyntGANPSP: pytorch 7 Mean iou =  0.843463152215
+SyntGAN_PSP: 0.84
+
+
+With less pretraining (PSP1000):
+Real_psp = 88.6
+Synt_psp = 81.7
+SyntGAN_psp2 (imgT) = 83.6
 

@@ -33,6 +33,7 @@ Options:
     --NoLabels=<int>            The number of different labels in training data, VOC has 21 labels, including background [default: 21]
     --gpu0=<int>                GPU number [default: 0] -1 for cpu mode
     --PSPNet                    Use the Pyramid Scene Parsing network
+    --LISTpath=<str>            Input image number list file [default: data/list/val.txt]            
 """
 
 args = docopt(docstr, version='v0.1')
@@ -87,9 +88,12 @@ model.eval()
 
 snapPrefix = args['--snapPrefix']
 gt_path = args['--testGTpath']
-img_list = open('data/list/val.txt').readlines()
+if not args['--LISTpath']:
+    img_list = open('data/list/val.txt').readlines()
+else:
+    img_list = open(args['--LISTpath']).readlines()
 
-for iter in range(30,31):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
+for iter in range(20,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
     if gpu0 >= 0:
         saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))
     else:
@@ -114,6 +118,9 @@ for iter in range(30,31):   #TODO set the (different iteration)models that you w
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
         gt = imread(os.path.join(gt_path,i[:-1]+'.png'),0)
         gt[gt==255] = 0
+        if int(args['--NoLabels']) == 2:
+            gt[gt != 15] = 0
+            gt[gt == 15] = 1
 
         if gpu0 >= 0:
             output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))

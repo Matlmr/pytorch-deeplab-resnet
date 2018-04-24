@@ -15,6 +15,10 @@ from tqdm import *
 import random
 from docopt import docopt
 import timeit
+
+#os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
 start = timeit.timeit
 docstr = """Train ResNet-DeepLab on VOC12 (scenes) in pytorch using MSCOCO pretrained initialization 
 
@@ -35,6 +39,7 @@ Options:
     --savePath=<str>            Path to save network
     --PSPNet                    Use the Pyramid Scene Parsing network
     --savedDict=<str>           Path to pretrained network [default : data/MS_DeepLab_resnet_pretrained_COCO_init.pth]
+    --GPUInvisible              Use GPUs without CUDA_VISIBLE_DEVICES
 """
 
 #    -b, --batchSize=<int>       num sample per batch [default: 1] currently only batch size of 1 is implemented, arbitrary batch size to be implemented soon
@@ -43,7 +48,8 @@ print(args)
 
 cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
-torch.cuda.set_device(gpu0)
+if args['--GPUInvisible']:
+    torch.cuda.set_device(gpu0)
 
 filename = args['--savePath']
 
@@ -98,7 +104,10 @@ def get_data_from_chunk_v2(chunk):
     gt = np.zeros((dim,dim,1,len(chunk)))
     for i,piece in enumerate(chunk):
         flip_p = random.uniform(0, 1)
-        img_temp = cv2.imread(os.path.join(img_path,piece+'.jpg')).astype(float)
+        if 'simulant' in piece:
+            img_temp = cv2.imread(os.path.join(img_path,piece+'.png')).astype(float)
+        else:
+            img_temp = cv2.imread(os.path.join(img_path,piece+'.jpg')).astype(float)
         img_temp = cv2.resize(img_temp,(321,321)).astype(float)
         img_temp = scale_im(img_temp,scale)
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
@@ -108,10 +117,13 @@ def get_data_from_chunk_v2(chunk):
         images[:,:,:,i] = img_temp
 
         gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
-        gt_temp[gt_temp == 255] = 0
-        if int(args['--NoLabels']) == 2:
-            gt_temp[gt_temp != 15] = 0
-            gt_temp[gt_temp == 15] = 1
+        if 'simulant' in piece:
+            gt_temp[gt_temp != 0] = 1
+        else:
+            gt_temp[gt_temp == 255] = 0
+            if int(args['--NoLabels']) == 2:
+                gt_temp[gt_temp != 15] = 0
+                gt_temp[gt_temp == 15] = 1
         #print(gt_temp)        
         gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
         gt_temp = scale_gt(gt_temp,scale)
@@ -132,7 +144,10 @@ def loss_calc(out, label,gpu0):
     # label shape h x w x 1 x batch_size  -> batch_size x 1 x h x w
     label = label[:,:,0,:].transpose(2,0,1)
     label = torch.from_numpy(label).long()
-    label = Variable(label).cuda(gpu0)
+    if args['--GPUInvisible']:
+        label = Variable(label).cuda(gpu0)
+    else:
+        label = Variable(label).cuda()
     m = nn.LogSoftmax()
     criterion = nn.NLLLoss2d()
     out = m(out)
@@ -188,9 +203,16 @@ if not os.path.exists('data/snapshots'):
 model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']),args['--PSPNet'])
 
 if not args['--savedDict']:
-    saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
+    if args['--GPUInvisible']:
+        saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
+    else:
+        saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth', map_location=lambda storage, loc: storage)
 else:
-    saved_state_dict = torch.load(args['--savedDict'])
+    if args['--GPUInvisible']:
+        saved_state_dict = torch.load(args['--savedDict'])
+    else:
+        saved_state_dict = torch.load(args['--savedDict'], map_location=lambda storage, loc: storage)
+
 
 model_dict = model.state_dict()
 
@@ -224,7 +246,10 @@ for i in range(10):  # make list for 10 epocs, though we will only use the first
     np.random.shuffle(img_list)
     data_list.extend(img_list)
 print('before')
-model.cuda(gpu0)
+if args['--GPUInvisible']:
+    model.cuda(gpu0)
+else:
+    model.cuda()
 print('after')
 criterion = nn.CrossEntropyLoss() # use a Classification Cross-Entropy loss
 optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': base_lr }, {'params': get_10x_lr_params(model), 'lr': 10*base_lr} ], lr = base_lr, momentum = 0.9,weight_decay = weight_decay)
@@ -237,7 +262,10 @@ for iter in range(max_iter+1):
     chunk = data_gen.next()
 
     images, label = get_data_from_chunk_v2(chunk)
-    images = Variable(images).cuda(gpu0)
+    if args['--GPUInvisible']:
+        images = Variable(images).cuda(gpu0)
+    else:
+        images = Variable(images).cuda()
 
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
     out = model(images)
