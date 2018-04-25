@@ -15,6 +15,7 @@ from tqdm import *
 import random
 from docopt import docopt
 import timeit
+import torchvision.models as models
 
 #os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -39,7 +40,9 @@ Options:
     --savePath=<str>            Path to save network
     --PSPNet                    Use the Pyramid Scene Parsing network
     --savedDict=<str>           Path to pretrained network [default : data/MS_DeepLab_resnet_pretrained_COCO_init.pth]
-    --GPUInvisible              Use GPUs without CUDA_VISIBLE_DEVICES
+    --GPUnormal              Use GPUs without CUDA_VISIBLE_DEVICES
+    --101                       Use Resnet101 instead of pretrained net
+    --coco                      Use data from COCO
 """
 
 #    -b, --batchSize=<int>       num sample per batch [default: 1] currently only batch size of 1 is implemented, arbitrary batch size to be implemented soon
@@ -48,7 +51,7 @@ print(args)
 
 cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
-if args['--GPUInvisible']:
+if args['--GPUnormal']:
     torch.cuda.set_device(gpu0)
 
 filename = args['--savePath']
@@ -104,9 +107,10 @@ def get_data_from_chunk_v2(chunk):
     gt = np.zeros((dim,dim,1,len(chunk)))
     for i,piece in enumerate(chunk):
         flip_p = random.uniform(0, 1)
-        if 'simulant' in piece:
+        if 'simulant' in piece or args['--coco']:
             img_temp = cv2.imread(os.path.join(img_path,piece+'.png')).astype(float)
         else:
+            print(img_path,piece+'.jpg')
             img_temp = cv2.imread(os.path.join(img_path,piece+'.jpg')).astype(float)
         img_temp = cv2.resize(img_temp,(321,321)).astype(float)
         img_temp = scale_im(img_temp,scale)
@@ -119,6 +123,8 @@ def get_data_from_chunk_v2(chunk):
         gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
         if 'simulant' in piece:
             gt_temp[gt_temp != 0] = 1
+        elif args['--coco']:
+            gt_temp[gt_temp == 255] = 1
         else:
             gt_temp[gt_temp == 255] = 0
             if int(args['--NoLabels']) == 2:
@@ -144,7 +150,7 @@ def loss_calc(out, label,gpu0):
     # label shape h x w x 1 x batch_size  -> batch_size x 1 x h x w
     label = label[:,:,0,:].transpose(2,0,1)
     label = torch.from_numpy(label).long()
-    if args['--GPUInvisible']:
+    if args['--GPUnormal']:
         label = Variable(label).cuda(gpu0)
     else:
         label = Variable(label).cuda()
@@ -152,6 +158,50 @@ def loss_calc(out, label,gpu0):
     criterion = nn.NLLLoss2d()
     out = m(out)
     return criterion(out,label)
+
+def class_balanced_cross_entropy_loss(output, label, size_average=True, batch_average=True, void_pixels=None):
+    """Define the class balanced cross entropy loss to train the network
+    Args:
+    output: Output of the network
+    label: Ground truth label
+    size_average: return per-element (pixel) average loss
+    batch_average: return per-batch average loss
+    void_pixels: pixels to ignore from the loss
+    Returns:
+    Tensor that evaluates the loss
+    """
+    assert(output.size() == label.size())
+
+    labels = torch.ge(label, 0.5).float()
+
+    num_labels_pos = torch.sum(labels)
+    num_labels_neg = torch.sum(1.0 - labels)
+    num_total = num_labels_pos + num_labels_neg
+
+    output_gt_zero = torch.ge(output, 0).float()
+    loss_val = torch.mul(output, (labels - output_gt_zero)) - torch.log(
+        1 + torch.exp(output - 2 * torch.mul(output, output_gt_zero)))
+
+    loss_pos_pix = -torch.mul(labels, loss_val)
+    loss_neg_pix = -torch.mul(1.0 - labels, loss_val)
+
+    if void_pixels is not None:
+        w_void = torch.le(void_pixels, 0.5).float()
+        loss_pos_pix = torch.mul(w_void, loss_pos_pix)
+        loss_neg_pix = torch.mul(w_void, loss_neg_pix)
+        num_total = num_total - torch.ge(void_pixels, 0.5).float().sum()
+
+    loss_pos = torch.sum(loss_pos_pix)
+    loss_neg = torch.sum(loss_neg_pix)
+
+    final_loss = num_labels_neg / num_total * loss_pos + num_labels_pos / num_total * loss_neg
+
+    if size_average:
+        final_loss /= np.prod(label.size())
+    elif batch_average:
+        final_loss /= label.size()[0]
+
+    return final_loss
 
 
 def lr_poly(base_lr, iter,max_iter,power):
@@ -202,34 +252,43 @@ if not os.path.exists('data/snapshots'):
 
 model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']),args['--PSPNet'])
 
-if not args['--savedDict']:
-    if args['--GPUInvisible']:
-        saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
+if args['--101']:
+    if args['--GPUnormal']:
+        saved_state_dict = torch.load('data/resnet101_imagenet.pth')
     else:
-        saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth', map_location=lambda storage, loc: storage)
+        saved_state_dict = torch.load('data/resnet101_imagenet.pth', map_location=lambda storage, loc: storage)
+    model_full = models.resnet101()
+    model_full.load_state_dict(saved_state_dict)
+    model.load_pretrained_ms(model_full)
 else:
-    if args['--GPUInvisible']:
-        saved_state_dict = torch.load(args['--savedDict'])
+
+    if not args['--savedDict']:
+        if args['--GPUnormal']:
+            saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
+        else:
+            saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth', map_location=lambda storage, loc: storage)
     else:
-        saved_state_dict = torch.load(args['--savedDict'], map_location=lambda storage, loc: storage)
+        if args['--GPUnormal']:
+            saved_state_dict = torch.load(args['--savedDict'])
+        else:
+            saved_state_dict = torch.load(args['--savedDict'], map_location=lambda storage, loc: storage)
 
+    model_dict = model.state_dict()
 
-model_dict = model.state_dict()
+    # 1. filter out unnecessary keys
+    saved_state_dict = {k: v for k, v in saved_state_dict.items() if k in model_dict}
 
-# 1. filter out unnecessary keys
-saved_state_dict = {k: v for k, v in saved_state_dict.items() if k in model_dict}
+    if int(args['--NoLabels'])!=21:
+        for i in saved_state_dict:
+            #Scale.layer5.conv2d_list.3.weight
+            i_parts = i.split('.')
+            if i_parts[1]=='layer5':
+                saved_state_dict[i] = model.state_dict()[i]
 
-if int(args['--NoLabels'])!=21:
-    for i in saved_state_dict:
-        #Scale.layer5.conv2d_list.3.weight
-        i_parts = i.split('.')
-        if i_parts[1]=='layer5':
-            saved_state_dict[i] = model.state_dict()[i]
-
-# 2. overwrite entries in the existing state dict
-model_dict.update(saved_state_dict)
-# 3. load the new state dict
-model.load_state_dict(model_dict)
+    # 2. overwrite entries in the existing state dict
+    model_dict.update(saved_state_dict)
+    # 3. load the new state dict
+    model.load_state_dict(model_dict)
 
 max_iter = int(args['--maxIter']) 
 batch_size = 1
@@ -246,7 +305,7 @@ for i in range(10):  # make list for 10 epocs, though we will only use the first
     np.random.shuffle(img_list)
     data_list.extend(img_list)
 print('before')
-if args['--GPUInvisible']:
+if args['--GPUnormal']:
     model.cuda(gpu0)
 else:
     model.cuda()
@@ -262,7 +321,7 @@ for iter in range(max_iter+1):
     chunk = data_gen.next()
 
     images, label = get_data_from_chunk_v2(chunk)
-    if args['--GPUInvisible']:
+    if args['--GPUnormal']:
         images = Variable(images).cuda(gpu0)
     else:
         images = Variable(images).cuda()

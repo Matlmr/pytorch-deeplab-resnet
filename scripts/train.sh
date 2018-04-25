@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES='3' python train2.py --GTpath=data/simulants/gt/ --IMpath=data/simulants/imgT/ --NoLabels=2 --LISTpath=data/simulants/list/train.txt --gpu0=3 --savePath=SyntGAN_psp2 --PSPNet --savedDict=data/snapshots/PSPmine/1000.pth
+CUDA_VISIBLE_DEVICES='4' python train2.py --GTpath=data/COCO/gt/ --IMpath=data/COCO/img/ --NoLabels=2 --LISTpath=data/COCO/list/train.txt --gpu0=4 --savePath=testPPM --PSPNet --101 --coco

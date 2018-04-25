@@ -33,7 +33,8 @@ Options:
     --NoLabels=<int>            The number of different labels in training data, VOC has 21 labels, including background [default: 21]
     --gpu0=<int>                GPU number [default: 0] -1 for cpu mode
     --PSPNet                    Use the Pyramid Scene Parsing network
-    --LISTpath=<str>            Input image number list file [default: data/list/val.txt]            
+    --LISTpath=<str>            Input image number list file [default: data/list/val.txt]
+    --coco                      Use the COCO dataset
 """
 
 args = docopt(docstr, version='v0.1')
@@ -93,7 +94,7 @@ if not args['--LISTpath']:
 else:
     img_list = open(args['--LISTpath']).readlines()
 
-for iter in range(20,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
+for iter in range(1,2):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
     if gpu0 >= 0:
         saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))
     else:
@@ -107,26 +108,40 @@ for iter in range(20,21):   #TODO set the (different iteration)models that you w
     pytorch_list = [];
     for i in img_list:
         counter+=1
-        print(counter)
-        img = np.zeros((513,513,3));
+        #print(counter)
+        if args['--coco']:        
+            img = np.zeros((640,640,3));
+        else:
+            img = np.zeros((513,513,3));
 
-        img_temp = imread(os.path.join(im_path,i[:-1]+'.jpg')).astype(float)
+        if args['--coco']:
+            img_temp = imread(os.path.join(im_path,i[:-1]+'.png')).astype(float)
+        else:
+            img_temp = imread(os.path.join(im_path,i[:-1]+'.jpg')).astype(float)
         img_original = img_temp
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
         img_temp[:,:,1] = img_temp[:,:,1] - 116.669
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
         gt = imread(os.path.join(gt_path,i[:-1]+'.png'),0)
-        gt[gt==255] = 0
-        if int(args['--NoLabels']) == 2:
-            gt[gt != 15] = 0
-            gt[gt == 15] = 1
+        
+        if args['--coco']:
+            gt[gt==255] = 1
+        else:
+            gt[gt==255] = 0
+            if int(args['--NoLabels']) == 2:
+                gt[gt != 15] = 0
+                gt[gt == 15] = 1
 
         if gpu0 >= 0:
             output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
         else:
             output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True))
-        interp = nn.UpsamplingBilinear2d(size=(513, 513))
+        
+        if args['--coco']:
+            interp = nn.UpsamplingBilinear2d(size=(640, 640))
+        else:
+            interp = nn.UpsamplingBilinear2d(size=(513, 513))
         if args['--PSPNet']:
             output = interp(output[0]).cpu().data[0].numpy()
         else:

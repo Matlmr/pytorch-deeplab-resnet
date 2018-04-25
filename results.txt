@@ -20,7 +20,15 @@ SyntGAN_PSP: 0.84
 
 
 With less pretraining (PSP1000):
+
 Real_psp = 88.6
 Synt_psp = 81.7
-SyntGAN_psp2 (imgT) = 83.6
+SyntGAN_psp = 83.6
+Synt+Real_psp = 87.5
+SyntG+Real_psp =
+
+
+Only ResNet101:
+
+Synt_imnet: 17 Mean iou =  0.422287069584
 
