@@ -35,6 +35,7 @@ Options:
     --PSPNet                    Use the Pyramid Scene Parsing network
     --LISTpath=<str>            Input image number list file [default: data/list/val.txt]
     --coco                      Use the COCO dataset
+    --GPUnormal                 Use GPUs without CUDA_VISIBLE_DEVICES
 """
 
 args = docopt(docstr, version='v0.1')
@@ -42,7 +43,7 @@ print args
 
 torch.backends.cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
-if gpu0 >= 0:
+if gpu0 >= 0 and args['--GPUnormal']:
     torch.cuda.set_device(gpu0)
 
 max_label = int(args['--NoLabels'])-1 # labels from 0,1, ... 20(for VOC) 
@@ -82,7 +83,10 @@ model = deeplab_resnet2.Res_Deeplab(int(args['--NoLabels']),args['--PSPNet'])
 counter = 0
 print('before')
 if gpu0 >= 0:
-    model.cuda(gpu0)
+    if args['--GPUnormal']:
+        model.cuda(gpu0)
+    else:
+        model.cuda()
 print('after')
 
 model.eval()
@@ -94,8 +98,8 @@ if not args['--LISTpath']:
 else:
     img_list = open(args['--LISTpath']).readlines()
 
-for iter in range(1,2):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
-    if gpu0 >= 0:
+for iter in (10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
+    if gpu0 >= 0 and args['--GPUnormal']:
         saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))
     else:
         saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'), map_location=lambda storage, loc: storage)
@@ -134,7 +138,10 @@ for iter in range(1,2):   #TODO set the (different iteration)models that you wan
                 gt[gt == 15] = 1
 
         if gpu0 >= 0:
-            output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
+            if args['--GPUnormal']:
+                output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
+            else:
+                output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda())
         else:
             output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True))
         
@@ -150,6 +157,8 @@ for iter in range(1,2):   #TODO set the (different iteration)models that you wan
         
         output = output.transpose(1,2,0)
         output = np.argmax(output,axis = 2)
+        #bck = np.zeros(output.shape,dtype=np.int64)
+        #output = bck
         if args['--visualize']:
             plt.subplot(3, 1, 1)
             plt.imshow(img_original)

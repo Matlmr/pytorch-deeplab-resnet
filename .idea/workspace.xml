@@ -4,6 +4,7 @@
     <list default="true" id="ceaa9be5-7cb0-4e8a-899a-65241aa1605b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/deeplab_resnet2.py" afterPath="$PROJECT_DIR$/deeplab_resnet2.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/evalpyt2.py" afterPath="$PROJECT_DIR$/evalpyt2.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/pytorch-deeplab-resnet.iml" afterPath="$PROJECT_DIR$/.idea/pytorch-deeplab-resnet.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/results.txt" afterPath="$PROJECT_DIR$/results.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/test.sh" afterPath="$PROJECT_DIR$/scripts/test.sh" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/train.sh" afterPath="$PROJECT_DIR$/scripts/train.sh" />
@@ -34,28 +35,60 @@
       <file leaf-file-name="deeplab_resnet2.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/deeplab_resnet2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="2265" max-vertical-offset="4620">
-              <caret line="151" column="29" selection-start-line="151" selection-start-column="29" selection-end-line="151" selection-end-column="29" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1710" max-vertical-offset="4785">
+              <caret line="54" column="11" selection-start-line="54" selection-start-column="11" selection-end-line="54" selection-end-column="11" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="train2.py" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/train2.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.3328125" vertical-offset="4287" max-vertical-offset="5625">
+              <caret line="300" column="37" selection-start-line="300" selection-start-column="37" selection-end-line="300" selection-end-column="37" />
+              <folding>
+                <element signature="e#45#62#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file leaf-file-name="train2.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/train2.py">
+        <entry file="file:///scratch_net/biwidl102/lamarrem/pytorch-deeplab-resnet/train2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="3840" max-vertical-offset="5385">
-              <caret line="256" column="48" selection-start-line="256" selection-start-column="48" selection-end-line="256" selection-end-column="48" />
+            <state vertical-scroll-proportion="-0.8108108" vertical-offset="570" max-vertical-offset="5625">
+              <caret line="40" column="19" selection-start-line="40" selection-start-column="19" selection-end-line="40" selection-end-column="19" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="evalpyt2.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="train.sh" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scripts/train.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="105">
+              <caret line="0" column="227" selection-start-line="0" selection-start-column="227" selection-end-line="0" selection-end-column="227" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="deeplab_resnet2.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file:///scratch_net/biwidl102/lamarrem/pytorch-deeplab-resnet/deeplab_resnet2.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="4095" max-vertical-offset="4785">
+              <caret line="247" column="58" selection-start-line="247" selection-start-column="58" selection-end-line="247" selection-end-column="58" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="evalpyt2.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/evalpyt2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5498282" vertical-offset="1200" max-vertical-offset="2580">
-              <caret line="112" column="40" selection-start-line="112" selection-start-column="40" selection-end-line="112" selection-end-column="40" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="550" max-vertical-offset="2715">
+              <caret line="170" column="29" selection-start-line="170" selection-start-column="22" selection-end-line="170" selection-end-column="29" />
               <folding />
             </state>
           </provider>
@@ -76,17 +109,18 @@
       <list>
         <option value="$PROJECT_DIR$/deeplab_resnet3.py" />
         <option value="$PROJECT_DIR$/train3.py" />
-        <option value="$PROJECT_DIR$/train2.py" />
-        <option value="$PROJECT_DIR$/deeplab_resnet2.py" />
         <option value="$PROJECT_DIR$/evalpyt2.py" />
+        <option value="$PROJECT_DIR$/deeplab_resnet2.py" />
+        <option value="/scratch_net/biwidl102/lamarrem/pytorch-deeplab-resnet/train2.py" />
+        <option value="$PROJECT_DIR$/scripts/train.sh" />
+        <option value="$PROJECT_DIR$/train2.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="88" />
-    <option name="y" value="85" />
-    <option name="width" value="1741" />
-    <option name="height" value="1038" />
+    <option name="x" value="-1" />
+    <option name="width" value="1922" />
+    <option name="height" value="1201" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -114,6 +148,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -122,16 +157,50 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pytorch-deeplab-resnet" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pytorch-deeplab-resnet" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pytorch-deeplab-resnet" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pytorch-deeplab-resnet" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scripts" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../pytorch-CycleGAN-and-pix2pix" />
+    <property name="last_opened_file_path" value="/scratch_net/biwidl102/lamarrem/miniconda3/envs/py27/bin/python" />
     <property name="FullScreen" value="false" />
+    <property name="options.lastSelected" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="recentsLimit" value="5" />
+    <property name="restartRequiresConfirmation" value="true" />
   </component>
-  <component name="RunManager">
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings />
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.train2">
     <configuration default="true" type="tests" factoryName="py.test">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -253,7 +322,27 @@
       <option name="USE_PATTERN" value="false" />
       <method />
     </configuration>
-    <list size="0" />
+    <configuration default="false" name="train2" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="pytorch-deeplab-resnet" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train2.py" />
+      <option name="PARAMETERS" value="--GTpath=data/COCO/gt/ --IMpath=data/COCO/img/ --NoLabels=1 --LISTpath=data/COCO/list/train.txt --gpu0=-1 --savePath=SyntGAN_300x --101 --lr 0.00026 --maxIter 200000 --PSPNet --coco --iterSize=1" />
+      <RunnerSettings RunnerId="PyDebugRunner" />
+      <ConfigurationWrapper RunnerId="PyDebugRunner" />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Python.train2" />
+    </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
   <component name="SvnConfiguration">
@@ -268,15 +357,15 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="88" y="85" width="1741" height="1038" extended-state="0" />
+    <frame x="-1" y="0" width="1922" height="1201" extended-state="6" />
     <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.27544567" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24947916" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.340055" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -308,60 +397,20 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/train2.py</url>
-        </line-breakpoint>
-      </breakpoints>
-      <option name="time" value="1" />
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
+      <option name="time" value="13" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/evalpyt2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1440" max-vertical-offset="2355">
-          <caret line="96" column="17" selection-start-line="96" selection-start-column="17" selection-end-line="96" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/deeplab_resnet2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4275">
-          <caret line="196" column="12" selection-start-line="196" selection-start-column="12" selection-end-line="196" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="870" max-vertical-offset="4050">
-          <caret line="109" column="59" selection-start-line="109" selection-start-column="59" selection-end-line="109" selection-end-column="59" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/evalpyt2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1440" max-vertical-offset="2355">
-          <caret line="96" column="17" selection-start-line="96" selection-start-column="17" selection-end-line="96" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/deeplab_resnet2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4275">
-          <caret line="196" column="12" selection-start-line="196" selection-start-column="12" selection-end-line="196" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/train2.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="671" max-vertical-offset="4050">
           <caret line="66" column="14" selection-start-line="66" selection-start-column="14" selection-end-line="66" selection-end-column="14" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -385,7 +434,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="90" max-vertical-offset="4050">
           <caret line="45" column="27" selection-start-line="45" selection-start-column="27" selection-end-line="45" selection-end-column="27" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -409,7 +460,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3840" max-vertical-offset="4005">
           <caret line="256" column="8" selection-start-line="256" selection-start-column="8" selection-end-line="256" selection-end-column="8" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -433,7 +486,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3090" max-vertical-offset="3945">
           <caret line="206" column="0" selection-start-line="206" selection-start-column="0" selection-end-line="206" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -457,7 +512,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3090" max-vertical-offset="3945">
           <caret line="206" column="0" selection-start-line="206" selection-start-column="0" selection-end-line="206" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -481,7 +538,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3000" max-vertical-offset="3915">
           <caret line="208" column="38" selection-start-line="208" selection-start-column="38" selection-end-line="208" selection-end-column="38" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -505,7 +564,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3120" max-vertical-offset="3945">
           <caret line="208" column="38" selection-start-line="208" selection-start-column="38" selection-end-line="208" selection-end-column="38" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -529,7 +590,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3120" max-vertical-offset="3945">
           <caret line="208" column="38" selection-start-line="208" selection-start-column="38" selection-end-line="208" selection-end-column="38" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -553,7 +616,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3075" max-vertical-offset="3945">
           <caret line="205" column="29" selection-start-line="205" selection-start-column="29" selection-end-line="205" selection-end-column="29" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -577,7 +642,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3405" max-vertical-offset="3975">
           <caret line="227" column="30" selection-start-line="227" selection-start-column="30" selection-end-line="227" selection-end-column="30" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -601,7 +668,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1723" max-vertical-offset="3900">
           <caret line="227" column="40" selection-start-line="227" selection-start-column="40" selection-end-line="227" selection-end-column="40" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -625,7 +694,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3135" max-vertical-offset="3900">
           <caret line="209" column="14" selection-start-line="209" selection-start-column="14" selection-end-line="209" selection-end-column="14" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -641,7 +712,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="3135" max-vertical-offset="3840">
           <caret line="209" column="30" selection-start-line="209" selection-start-column="30" selection-end-line="209" selection-end-column="30" />
-          <folding />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -697,27 +770,69 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/evalpyt2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="550" max-vertical-offset="2715">
+          <caret line="170" column="29" selection-start-line="170" selection-start-column="22" selection-end-line="170" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_execfile.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="645">
+          <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///scratch_net/biwidl102/lamarrem/miniconda3/envs/py27/lib/python2.7/site-packages/torch/cuda/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="700" max-vertical-offset="7995">
+          <caret line="70" column="0" selection-start-line="70" selection-start-column="0" selection-end-line="70" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///scratch_net/biwidl102/lamarrem/pytorch-deeplab-resnet/deeplab_resnet2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="4095" max-vertical-offset="4785">
+          <caret line="247" column="58" selection-start-line="247" selection-start-column="58" selection-end-line="247" selection-end-column="58" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///scratch_net/biwidl102/lamarrem/pytorch-deeplab-resnet/train2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.8108108" vertical-offset="570" max-vertical-offset="5625">
+          <caret line="40" column="19" selection-start-line="40" selection-start-column="19" selection-end-line="40" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/train.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="105">
+          <caret line="0" column="227" selection-start-line="0" selection-start-column="227" selection-end-line="0" selection-end-column="227" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/deeplab_resnet2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2265" max-vertical-offset="4620">
-          <caret line="151" column="29" selection-start-line="151" selection-start-column="29" selection-end-line="151" selection-end-column="29" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1710" max-vertical-offset="4785">
+          <caret line="54" column="11" selection-start-line="54" selection-start-column="11" selection-end-line="54" selection-end-column="11" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/train2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3840" max-vertical-offset="5385">
-          <caret line="256" column="48" selection-start-line="256" selection-start-column="48" selection-end-line="256" selection-end-column="48" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/evalpyt2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5498282" vertical-offset="1200" max-vertical-offset="2580">
-          <caret line="112" column="40" selection-start-line="112" selection-start-column="40" selection-end-line="112" selection-end-column="40" />
-          <folding />
+        <state vertical-scroll-proportion="0.3328125" vertical-offset="4287" max-vertical-offset="5625">
+          <caret line="300" column="37" selection-start-line="300" selection-start-column="37" selection-end-line="300" selection-end-column="37" />
+          <folding>
+            <element signature="e#45#62#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

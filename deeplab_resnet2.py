@@ -194,8 +194,8 @@ class ResNet(nn.Module):
         if not psp:
             self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
         else:
-            #self.layer5 = PSPModule(n_classes=NoLabels)
-            self.layer5 = PPM(NoLabels)
+            self.layer5 = PSPModule(n_classes=NoLabels)
+            #self.layer5 = PPM(NoLabels)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

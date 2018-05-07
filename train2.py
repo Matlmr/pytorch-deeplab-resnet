@@ -1,4 +1,6 @@
-import cv2, torch
+#from PyQt5 import QtCore, QtGui, QtWidgets
+
+import torch, cv2
 import torch.nn as nn
 import numpy as np
 #import pickle
@@ -16,6 +18,7 @@ import random
 from docopt import docopt
 import timeit
 import torchvision.models as models
+from torch.nn.functional import upsample
 
 #os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -40,9 +43,10 @@ Options:
     --savePath=<str>            Path to save network
     --PSPNet                    Use the Pyramid Scene Parsing network
     --savedDict=<str>           Path to pretrained network [default : data/MS_DeepLab_resnet_pretrained_COCO_init.pth]
-    --GPUnormal              Use GPUs without CUDA_VISIBLE_DEVICES
+    --GPUnormal                 Use GPUs without CUDA_VISIBLE_DEVICES
     --101                       Use Resnet101 instead of pretrained net
     --coco                      Use data from COCO
+    --batchSize=<int>           The batch size used [default: 2]
 """
 
 #    -b, --batchSize=<int>       num sample per batch [default: 1] currently only batch size of 1 is implemented, arbitrary batch size to be implemented soon
@@ -51,7 +55,7 @@ print(args)
 
 cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
-if args['--GPUnormal']:
+if args['--GPUnormal'] and gpu0 >= 0:
     torch.cuda.set_device(gpu0)
 
 filename = args['--savePath']
@@ -100,9 +104,9 @@ def scale_gt(img_temp,scale):
 def get_data_from_chunk_v2(chunk):
     gt_path =  args['--GTpath']
     img_path = args['--IMpath']
-
+    max_im_size = int(512/1.3)
     scale = random.uniform(0.5, 1.3) #random.uniform(0.5,1.5) does not fit in a Titan X with the present version of pytorch, so we random scaling in the range (0.5,1.3), different than caffe implementation in that caffe used only 4 fixed scales. Refer to read me
-    dim = int(scale*321)
+    dim = int(scale*max_im_size)
     images = np.zeros((dim,dim,3,len(chunk)))
     gt = np.zeros((dim,dim,1,len(chunk)))
     for i,piece in enumerate(chunk):
@@ -110,9 +114,8 @@ def get_data_from_chunk_v2(chunk):
         if 'simulant' in piece or args['--coco']:
             img_temp = cv2.imread(os.path.join(img_path,piece+'.png')).astype(float)
         else:
-            print(img_path,piece+'.jpg')
             img_temp = cv2.imread(os.path.join(img_path,piece+'.jpg')).astype(float)
-        img_temp = cv2.resize(img_temp,(321,321)).astype(float)
+        img_temp = cv2.resize(img_temp,(max_im_size,max_im_size)).astype(float)
         img_temp = scale_im(img_temp,scale)
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
         img_temp[:,:,1] = img_temp[:,:,1] - 116.669
@@ -131,16 +134,18 @@ def get_data_from_chunk_v2(chunk):
                 gt_temp[gt_temp != 15] = 0
                 gt_temp[gt_temp == 15] = 1
         #print(gt_temp)        
-        gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
+        gt_temp = cv2.resize(gt_temp,(max_im_size,max_im_size) , interpolation = cv2.INTER_NEAREST)
         gt_temp = scale_gt(gt_temp,scale)
         gt_temp = flip(gt_temp,flip_p)
         gt[:,:,0,i] = gt_temp
-        a = outS(321*scale)#41
-        b = outS((321*0.5)*scale+1)#21
+    a = outS(max_im_size*scale)#41
+    b = outS((max_im_size*0.5)*scale+1)#21
     labels = [resize_label_batch(gt,i) for i in [a,a,b,a]]
     images = images.transpose((3,2,0,1))
+    gts = gt.transpose((3,2,0,1))
     images = torch.from_numpy(images).float()
-    return images, labels
+    gts = torch.from_numpy(gts).float()
+    return images, labels, gts
 
 def loss_calc(out, label,gpu0):
     """
@@ -152,8 +157,10 @@ def loss_calc(out, label,gpu0):
     label = torch.from_numpy(label).long()
     if args['--GPUnormal']:
         label = Variable(label).cuda(gpu0)
-    else:
+    elif gpu0 >= 0:
         label = Variable(label).cuda()
+    else:
+        label = Variable(label)
     m = nn.LogSoftmax()
     criterion = nn.NLLLoss2d()
     out = m(out)
@@ -291,23 +298,23 @@ else:
     model.load_state_dict(model_dict)
 
 max_iter = int(args['--maxIter']) 
-batch_size = 1
+batch_size = int(args['--batchSize'])
 weight_decay = float(args['--wtDecay'])
 base_lr = float(args['--lr'])
 
 model.float()
-model.eval() # use_global_stats = True
+model.train() # use_global_stats = True
 
 img_list = read_file(args['--LISTpath'])
 
 data_list = []
-for i in range(10):  # make list for 10 epocs, though we will only use the first max_iter*batch_size entries of this list
+for i in range(70):  # make list for 10 epocs, though we will only use the first max_iter*batch_size entries of this list
     np.random.shuffle(img_list)
     data_list.extend(img_list)
 print('before')
 if args['--GPUnormal']:
     model.cuda(gpu0)
-else:
+elif gpu0 >= 0:
     model.cuda()
 print('after')
 criterion = nn.CrossEntropyLoss() # use a Classification Cross-Entropy loss
@@ -320,32 +327,41 @@ for iter in range(max_iter+1):
     
     chunk = data_gen.next()
 
-    images, label = get_data_from_chunk_v2(chunk)
+    images, label, gts = get_data_from_chunk_v2(chunk)
     if args['--GPUnormal']:
         images = Variable(images).cuda(gpu0)
-    else:
+    elif gpu0 >= 0:
         images = Variable(images).cuda()
+        gts = Variable(gts).cuda()
+    else:
+        images = Variable(images)
+        gts = Variable(gts)
 
-    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    if gpu0 >= 0:
+        torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    else:
+        torch.set_default_tensor_type('torch.FloatTensor')
     out = model(images)
-    loss = loss_calc(out[0], label[0],gpu0)
+    output = upsample(out[0], size=(images.shape[2], images.shape[3]), mode='bilinear')
+    #loss = loss_calc(out[0], label[0],gpu0)
+    loss = class_balanced_cross_entropy_loss(output, gts, size_average=True, batch_average=True)
     iter_size = int(args['--iterSize'])
-    for i in range(len(out)-1):
-        loss = loss + loss_calc(out[i+1],label[i+1],gpu0)
+    # for i in range(len(out)-1):
+    #     loss = loss + loss_calc(out[i+1],label[i+1],gpu0)
     loss = loss/iter_size 
     loss.backward()
 
     if iter %1 == 0:
         print 'iter = ',iter, 'of',max_iter,'completed, loss = ', iter_size*(loss.data.cpu().numpy())
 
-    if iter % iter_size  == 0:
+    if iter % iter_size == 0:
         optimizer.step()
-        lr_ = lr_poly(base_lr,iter,max_iter,0.9)
+        lr_ = base_lr  # lr_poly(base_lr,iter,max_iter,0.9)
         print '(poly lr policy) learning rate',lr_
-        optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = weight_decay)
+        # optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = weight_decay)
         optimizer.zero_grad()
 
-    if iter % 1000 == 0 and iter!=0:
+    if iter % 10000 == 0 and iter!=0:
         print 'taking snapshot ...'
         #torch.save(model.state_dict(),'data/snapshots/VOC12_scenes_'+str(iter)+'.pth')
         torch.save(model.state_dict(),'data/snapshots/'+filename+'/'+str(iter)+'.pth')

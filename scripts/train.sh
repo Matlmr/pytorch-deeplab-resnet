@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES='4' python train2.py --GTpath=data/COCO/gt/ --IMpath=data/COCO/img/ --NoLabels=2 --LISTpath=data/COCO/list/train.txt --gpu0=4 --savePath=testPPM --PSPNet --101 --coco
+CUDA_VISIBLE_DEVICES='3' python train2.py --GTpath=data/COCO/gt/ --IMpath=data/COCO/img/ --NoLabels=1 --LISTpath=data/COCO/list/train.txt --gpu0=3 --savePath=COCO_00026 --101 --lr 0.00026 --iterSize=1 --maxIter 200000 --PSPNet --coco --batchSize=2
