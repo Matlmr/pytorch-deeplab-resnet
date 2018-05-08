@@ -46,7 +46,8 @@ gpu0 = int(args['--gpu0'])
 if gpu0 >= 0 and args['--GPUnormal']:
     torch.cuda.set_device(gpu0)
 
-max_label = int(args['--NoLabels'])-1 # labels from 0,1, ... 20(for VOC) 
+max_label = int(args['--NoLabels']) - 1 if int(args['--NoLabels']) > 1 else int(args['--NoLabels']) # labels from 0,1, ... 20(for VOC)
+
 def fast_hist(a, b, n):
     k = (a >= 0) & (a < n)
     return np.bincount(n * a[k].astype(int) + b[k], minlength=n**2).reshape(n, n)
@@ -97,7 +98,6 @@ if not args['--LISTpath']:
     img_list = open('data/list/val.txt').readlines()
 else:
     img_list = open(args['--LISTpath']).readlines()
-
 for iter in (10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
     if gpu0 >= 0 and args['--GPUnormal']:
         saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))
@@ -112,8 +112,7 @@ for iter in (10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,
     pytorch_list = [];
     for i in img_list:
         counter+=1
-        #print(counter)
-        if args['--coco']:        
+        if args['--coco']:
             img = np.zeros((640,640,3));
         else:
             img = np.zeros((513,513,3));
@@ -128,12 +127,12 @@ for iter in (10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
         gt = imread(os.path.join(gt_path,i[:-1]+'.png'),0)
-        
+
         if args['--coco']:
             gt[gt==255] = 1
         else:
             gt[gt==255] = 0
-            if int(args['--NoLabels']) == 2:
+            if int(args['--NoLabels']) == 2 or int(args['--NoLabels']) == 1:
                 gt[gt != 15] = 0
                 gt[gt == 15] = 1
 
@@ -144,7 +143,7 @@ for iter in (10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,
                 output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda())
         else:
             output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True))
-        
+
         if args['--coco']:
             interp = nn.UpsamplingBilinear2d(size=(640, 640))
         else:
@@ -154,9 +153,10 @@ for iter in (10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,
         else:
             output = interp(output[3]).cpu().data[0].numpy()
         output = output[:,:img_temp.shape[0],:img_temp.shape[1]]
-        
+
         output = output.transpose(1,2,0)
-        output = np.argmax(output,axis = 2)
+        output = np.greater_equal(output,0)[:,:,0]
+        #output = np.argmax(output,axis = 2)
         #bck = np.zeros(output.shape,dtype=np.int64)
         #output = bck
         if args['--visualize']:
@@ -168,8 +168,9 @@ for iter in (10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,
             plt.imshow(output)
             plt.show()
 
-        iou_pytorch = get_iou(output,gt)       
+        iou_pytorch = get_iou(output,gt)
         pytorch_list.append(iou_pytorch)
         hist += fast_hist(gt.flatten(),output.flatten(),max_label+1)
     miou = np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))
     print 'pytorch',iter,"Mean iou = ",np.sum(miou)/len(miou)
+

@@ -130,7 +130,7 @@ def get_data_from_chunk_v2(chunk):
             gt_temp[gt_temp == 255] = 1
         else:
             gt_temp[gt_temp == 255] = 0
-            if int(args['--NoLabels']) == 2:
+            if int(args['--NoLabels']) == 2 or int(args['--NoLabels']) == 1:
                 gt_temp[gt_temp != 15] = 0
                 gt_temp[gt_temp == 15] = 1
         #print(gt_temp)        
@@ -153,7 +153,7 @@ def loss_calc(out, label,gpu0):
     """
     # out shape batch_size x channels x h x w -> batch_size x channels x h x w
     # label shape h x w x 1 x batch_size  -> batch_size x 1 x h x w
-    label = label[:,:,0,:].transpose(2,0,1)
+    #label = label[:,:,0,:].transpose(2,0,1)
     label = torch.from_numpy(label).long()
     if args['--GPUnormal']:
         label = Variable(label).cuda(gpu0)
@@ -308,7 +308,7 @@ model.train() # use_global_stats = True
 img_list = read_file(args['--LISTpath'])
 
 data_list = []
-for i in range(70):  # make list for 10 epocs, though we will only use the first max_iter*batch_size entries of this list
+for i in range(140):  # make list for 10 epocs, though we will only use the first max_iter*batch_size entries of this list
     np.random.shuffle(img_list)
     data_list.extend(img_list)
 print('before')
@@ -322,6 +322,9 @@ optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': base_lr
 
 optimizer.zero_grad()
 data_gen = chunker(data_list, batch_size)
+
+sumloss = 0
+epoch = 0
 
 for iter in range(max_iter+1):
     
@@ -352,7 +355,14 @@ for iter in range(max_iter+1):
     loss.backward()
 
     if iter %1 == 0:
-        print 'iter = ',iter, 'of',max_iter,'completed, loss = ', iter_size*(loss.data.cpu().numpy())
+        oneloss = iter_size*(loss.data.cpu().numpy())
+        print 'iter = ',iter, 'of',max_iter,'completed, loss = ', oneloss
+        sumloss += oneloss
+
+    if iter % (3000/batch_size) == 0:
+        epoch += 1
+        print 'After ',epoch,' epoch, average loss = ',sumloss/(3000/batch_size)
+        sumloss = 0
 
     if iter % iter_size == 0:
         optimizer.step()
